@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Compost Bin Monitor</title>
+   <style>
+      body { font-family: Arial, sans-serif; margin: 0px; padding: 0px; background-color:#98bf64 ; color: #333; }
+      h1 {color: #FFF; text-align: center;}
+      h2 {color: lightblue; text-align: center;}
+      .data-box { margin: 20px; ; padding: 20px; width: 250px; margin-top: 15px;}
+      .gas-level { font-size: 32px; font-weight: bold; margin-top: 10px; color: #d35400; }
+      .tagline { font-size: 16px; font-weight: bold; color: darkblue; text-align: center; }
+      nav {padding: 10px 20px; background-color: darkblue }
+      .nav-2 {background-color: lightblue; padding:1px 1px; margin: 0px; }
+      .methane {font-size: 20px}
+      .info {margin: 0px; padding: 0px 22px; display: flex; gap: 8px;; padding: 10px 0; font-size: 23px; }
+      table, th, td {border:0.8px solid black; border-radius: 8px; margin: 0px; padding: 10px; margin-left: 73px; font-weight: bold; }
+      .open-btn {background-color: #d35400; color: white; border: none; padding: 8px 14px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background-color 0.2s ease;}
+      .open-btn:hover {background-color: #b04300;}
+      .overlay {position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; z-index: 998;}
+      .overlay.active {opacity: 1; visibility: visible;}
+      .sidebar {position: fixed; top: 0; right: -380px; width: 350px; height: 100vh; background-color: #f4f6f8; box-shadow: -4px 0 12px rgba(0, 0, 0, 0.2); transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 999; display: flex; flex-direction: column; box-sizing: border-box;}
+      .sidebar.active {right: 0;}
+      .sidebar-header {background-color: darkblue; color: white; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;}
+      .sidebar-header h3 {margin: 0; font-size: 20px;}
+      .close-btn {background: none; border: none; color: white; font-size: 26px; cursor: pointer; line-height: 1;}
+      .sidebar-content {padding: 16px; overflow-y: auto; flex: 1;}
+      .complaint-card {background: white; border: 1px solid #dcdcdc; border-radius: 8px; padding: 14px; margin-bottom: 14px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);}
+      .card-header {display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;}
+      .badge {font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 12px; text-transform: uppercase;}
+      .badge.danger {background-color: #fadbd8; color: #78281f;}
+      .badge.warning {background-color: #fcf3cf; color: #7d6608;}
+      .timestamp {font-size: 11px; color: #888;}
+      .card-author {margin: 0 0 6px 0; font-size: 13px; color: #444;}
+      .card-text {margin: 0; font-size: 13px; color: #666; line-height: 1.4;}
+      
+   </style>
+</head>
+<body>
+  <header>
+    <nav>
+        <h2>Thiruvananthapuram Municipal Corporation</h3>
+        <h1>Organics 360</h1>
+        
+        
+    </nav>
+
+    
+
+    <div class="nav-2">
+       <p class="tagline">Smart Solution For Municipal Organic Waste Corporation</p>
+    </div>
+</header>
+  <!-- Toggle Button -->
+<button class="open-btn" onclick="toggleComplaintSidebar()">Compliants</button>
+
+<!-- Dim Background Overlay -->
+<div id="overlay" class="overlay" onclick="toggleComplaintSidebar()"></div>
+
+<!-- Automated Complaint / Event Logs Sidebar -->
+<aside id="complaintSidebar" class="sidebar">
+  <div class="sidebar-header">
+    <h3>System Event Logs</h3>
+    <button class="close-btn" onclick="toggleComplaintSidebar()">&times;</button>
+  </div>
+
+  <div class="sidebar-content">
+    <div id="complaintsContainer">
+      <div class="complaint-card">
+        <div class="card-header">
+          <span class="badge warning">System Ready</span>
+          <span class="timestamp">--:--</span>
+        </div>
+        <p class="card-author"><strong>Source:</strong> ESP32 Node</p>
+        <p class="card-text">Waiting for sensor condition triggers...</p>
+      </div>
+    </div>
+  </div>
+</aside>
+
+  <div class="info">
+    <p class="date"></p>
+    <strong>MRF:</strong> Maruthoorkadavu | <strong>Ward:</strong> Kalady | <strong>Health Circle:</strong> Fort
+    <div id="live-clock" style="font-weight: bold; color: #008000; font-size: 23px; margin-left: auto;">
+      --
+    </div>
+  </div>
+  
+
+<table>
+    <tr>
+      <th>Gas</th>
+      <th>Permissible Level</th>
+      <th>Gas Levels (PPM)</th>
+      <th>Status</th>
+    </tr>
+    <tr>
+      <td>CH4</td>
+      <td>400</td>
+      <td><span id="sensor-val">--</span></td>
+      <td><span id="gas-status">--</span></td>
+    </tr>
+  </table>
+
+
+      
+
+<script>
+    function updateClock() {
+      const now = new Date();
+      // Formats date and time 
+      const options = { 
+        year: 'numeric', month: 'short', day: 'numeric', 
+        hour: '2-digit', minute: '2-digit', second: '2-digit' 
+      };
+      document.getElementById('live-clock').innerText = now.toLocaleDateString('en-US', options);
+    }
+
+    // Update every second for a live clock effect
+    setInterval(updateClock, 1000);
+    updateClock();
+    async function fetchGasData() {
+         try { const response = await fetch('/api/data');
+              const data = await response.json();
+              document.getElementById('sensor-val').innerText = data.sensor_value;
+              document.getElementById('gas-status').innerText = data.gas_status;
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            
+        }
+     }
+     setInterval(fetchGasData, 1000);
+     
+
+
+    // Live Clock Function
+    function updateClock() {
+      const now = new Date();
+      const options = { 
+        year: 'numeric', month: 'short', day: 'numeric', 
+        hour: '2-digit', minute: '2-digit', second: '2-digit' 
+      };
+      document.getElementById('live-clock').innerText = now.toLocaleDateString('en-US', options);
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Sidebar Toggle Function
+    function toggleComplaintSidebar() {
+      document.getElementById('complaintSidebar').classList.toggle('active');
+      document.getElementById('overlay').classList.toggle('active');
+    }
+
+    let lastLoggedStatus = "Safe";
+
+    // ESP32 Data Fetch & Automated Log Trigger
+    async function fetchGasData() {
+         try { 
+              const response = await fetch('/api/data');
+              const data = await response.json();
+              
+              // Updates your main dashboard table
+              document.getElementById('sensor-val').innerText = data.sensor_value;
+              document.getElementById('gas-status').innerText = data.gas_status;
+
+              // Automatically generate log card if status moves away from Safe
+              if (data.gas_status !== "Safe" && data.gas_status !== lastLoggedStatus) {
+                  // Passed data.message right into the function here!
+                  appendAutomatedLog(data.gas_status, data.sensor_value, data.message);
+                  lastLoggedStatus = data.gas_status; 
+              } else if (data.gas_status === "Safe") {
+                  lastLoggedStatus = "Safe"; 
+              }
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    }
+
+    // Function to dynamically insert new log cards into the sidebar
+    function appendAutomatedLog(gas_status, sensor_value, message) {
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const logBox = document.createElement('div');
+        logBox.className = 'complaint-card';
+
+        let badgeClass = 'danger';
+        // Fixed variable name from 'status' to 'gas_status'
+        if (gas_status.includes('Borderline') || gas_status.includes('Warning')) {
+            badgeClass = 'warning';
+        }
+
+        logBox.innerHTML = `
+          <div class="card-header">
+            <span class="badge ${badgeClass}">${gas_status}</span>
+            <span class="timestamp">${time}</span>
+          </div>
+          <p class="card-author"><strong>Sensor Value:</strong> ${sensor_value} PPM</p>
+          <p class="card-text">${message}</p>
+        `;
+
+        const container = document.getElementById('complaintsContainer');
+        container.insertBefore(logBox, container.firstChild);
+    }
+
+    setInterval(fetchGasData, 1000);
+
+  
+
+</script>
+
+</body>
+</html>
