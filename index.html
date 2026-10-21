@@ -33,17 +33,16 @@
       .timestamp {font-size: 11px; color: #888;}
       .card-author {margin: 0 0 6px 0; font-size: 13px; color: #444;}
       .card-text {margin: 0; font-size: 13px; color: #666; line-height: 1.4;}
-      .nav-logo {height: 155px; width: auto;
-      
+      .nav-logo {height: 155px; width: auto; z-index: 2;}
+      .header-center { position: absolute;left: 50%; transform: translateX(-50%); text-align: center; width: max-content; }
    </style>
 </head>
 <body>
   <header>
     <nav>
         <img src="logo.png" alt="Logo" class="nav-logo">
-        <div style="text-align: center;">
+       <div class="header-center">
             <h2>Thiruvananthapuram Municipal Corporation</h2>
-            <!-- Live Clock positioned right below the title -->
             <div id="live-clock" style="font-weight: bold; color: #008000; font-size: 18px; margin-top: 5px;">
               --
             </div>
