@@ -13,7 +13,7 @@
       .tagline { font-size: 16px; font-weight: bold; color: darkblue; text-align: center; }
       nav {padding: 10px 20px; background-color: white; display: flex;}
       .methane {font-size: 20px}
-      .info {margin: 0px; padding: 0px 22px; display: flex; gap: 8px; padding: 10px 0; font-size: 23px; }
+      .info {margin: 0px; padding: 0px 22px; display: flex; gap: 8px; padding: 10px 0; font-size: 23px; gap:15px; }
       table, th, td {border:0.8px solid black; border-radius: 8px; margin: 0px; padding: 10px; margin-left: 73px; font-weight: bold; }
       .open-btn {background-color: #d35400; color: white; border: none; padding: 8px 14px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background-color 0.2s ease;}
       .open-btn:hover {background-color: #b04300;}
@@ -53,7 +53,7 @@
   </header>
 
   <!-- Toggle Button -->
-  <button class="open-btn" onclick="toggleComplaintSidebar()">Complaints</button>
+  <button class="open-btn" style="margin-right: auto;" onclick="toggleComplaintSidebar()">Complaints</button>
 
   <!-- Dim Background Overlay -->
   <div id="overlay" class="overlay" onclick="toggleComplaintSidebar()"></div>
